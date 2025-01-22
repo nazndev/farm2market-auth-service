@@ -1,0 +1,16 @@
+# Generate Private Key
+openssl genrsa -out private_key.pem 2048
+
+# Extract Public Key
+openssl rsa -in private_key.pem -pubout -out public_key.pem
+
+# Encode Keys in Base64
+cat private_key.pem | base64 -w 0 > private_key_base64.txt
+cat public_key.pem | base64 -w 0 > public_key_base64.txt
+
+
+
+
+
+chmod 600 /path/to/private_key.pem
+chmod 600 /path/to/public_key.pem
