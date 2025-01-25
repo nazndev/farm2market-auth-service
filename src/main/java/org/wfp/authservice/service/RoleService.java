@@ -42,7 +42,7 @@ public class RoleService {
     }
 
     public Role saveRole(Role role) {
-        boolean isNew = role.getId() == null; // Determine if it's a new role or an update
+        boolean isNew = role.getId() == null;
         Role savedRole = roleRepository.save(role);
 
         String operation = isNew ? "CREATE" : "UPDATE";

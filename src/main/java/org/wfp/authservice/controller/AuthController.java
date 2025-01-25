@@ -79,46 +79,58 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponseDTO<?>> login(@RequestBody LoginDTO loginDTO) {
-        // Find user by username
-        System.out.println("Attempting login for username: " + loginDTO.getUsername());
-        User user = userService.findByUsername(loginDTO.getUsername())
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
-        System.out.println("User found: " + user.getUsername());
+        try {
+            // Find user by username
+            System.out.println("Attempting login for username: " + loginDTO.getUsername());
+            User user = userService.findByUsername(loginDTO.getUsername())
+                    .orElseThrow(() -> new Exception("Invalid username or password"));
+            System.out.println("User found: " + user.getUsername());
 
-        if (!userService.checkPassword(loginDTO.getPassword(), user.getPassword())) {
-            System.out.println("Password mismatch for username: " + loginDTO.getUsername());
-            auditLogService.log("User", "LOGIN_FAILED", "Failed login attempt for: " + loginDTO.getUsername(), null, "WARN");
-            return ResponseEntity.badRequest().body(new ApiResponseDTO<>(false, "Invalid username or password", null));
+            if (!userService.checkPassword(loginDTO.getPassword(), user.getPassword())) {
+                System.out.println("Password mismatch for username: " + loginDTO.getUsername());
+                auditLogService.log("User", "LOGIN_FAILED", "Failed login attempt for: " + loginDTO.getUsername(), null, "WARN");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                        new ApiResponseDTO<>(false, "Invalid username or password", null)
+                );
+            }
+            System.out.println("Password matched for username: " + loginDTO.getUsername());
+
+            // Build JWT claims
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("roles", user.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
+            claims.put("email", user.getEmail());
+            claims.put("active", user.isActive());
+            claims.put("permissions", userService.getUserPermissions(user.getId()));
+
+            // Generate token
+            String token = jwtUtil.generateToken(user.getUsername(), claims);
+
+            // Extract token expiration time
+            Date tokenExpirationDate = jwtUtil.extractExpiration(token);
+            long tokenExpiry = tokenExpirationDate.toInstant().getEpochSecond();
+
+            // Log successful login
+            auditLogService.log("User", "LOGIN", "User logged in successfully: " + user.getUsername(), null, "INFO");
+
+            // Prepare response
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("tokenExpiry", tokenExpiry);
+            response.put("username", user.getUsername());
+            response.put("roles", claims.get("roles"));
+            response.put("permissions", claims.get("permissions"));
+
+            return ResponseEntity.ok(new ApiResponseDTO<>(true, "Login successful", response));
+
+        } catch (Exception e) {
+            System.out.println("Login failed: " + e.getMessage());
+            auditLogService.log("User", "LOGIN_FAILED", "Login attempt failed: " + loginDTO.getUsername(), null, "WARN");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    new ApiResponseDTO<>(false, e.getMessage(), null)
+            );
         }
-        System.out.println("Password matched for username: " + loginDTO.getUsername());
-
-        // Build JWT claims
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", user.getRoles().stream().map(Role::getName).collect(Collectors.toList()));
-        claims.put("email", user.getEmail());
-        claims.put("active", user.isActive());
-        claims.put("permissions", userService.getUserPermissions(user.getId()));
-
-        // Generate token
-        String token = jwtUtil.generateToken(user.getUsername(), claims);
-
-        // Extract token expiration time
-        Date tokenExpirationDate = jwtUtil.extractExpiration(token);
-        long tokenExpiry = tokenExpirationDate.toInstant().getEpochSecond();
-
-        // Log successful login
-        auditLogService.log("User", "LOGIN", "User logged in successfully: " + user.getUsername(), null, "INFO");
-
-        // Prepare response
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", token);
-        response.put("tokenExpiry", tokenExpiry);
-        response.put("username", user.getUsername());
-        response.put("roles", claims.get("roles"));
-        response.put("permissions", claims.get("permissions"));
-
-        return ResponseEntity.ok(new ApiResponseDTO<>(true, "Login successful", response));
     }
+
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponseDTO<?>> refreshToken(@RequestHeader("Authorization") String token) {

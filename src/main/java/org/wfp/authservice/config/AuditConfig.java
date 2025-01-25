@@ -18,9 +18,9 @@ public class AuditConfig {
         return () -> {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                return Optional.of("SYSTEM"); // Default for unauthenticated operations
+                return Optional.of("SYSTEM");
             }
-            return Optional.of(authentication.getName()); // The username of the authenticated user
+            return Optional.of(authentication.getName());
         };
     }
 }

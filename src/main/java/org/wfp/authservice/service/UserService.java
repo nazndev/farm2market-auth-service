@@ -49,7 +49,7 @@ public class UserService {
                 "User",
                 "FETCH",
                 "Fetched all users, total: " + users.getTotalElements(),
-                null, // No IP context here
+                null,
                 "INFO"
         );
 
@@ -57,7 +57,7 @@ public class UserService {
     }
 
     public User saveUser(User user) {
-        boolean isNew = user.getId() == null; // Determine if it's a new user or an update
+        boolean isNew = user.getId() == null;
 
         // Encode password
         if (isNew || user.getPassword() != null) {
@@ -71,7 +71,7 @@ public class UserService {
                 "User",
                 operation,
                 operation + " user: " + savedUser.getUsername(),
-                null, // No IP context here
+                null,
                 "INFO"
         );
 
@@ -125,7 +125,7 @@ public class UserService {
                 "DELETE",
                 "Deleted user: " + user.getUsername(),
                 null,
-                "CRITICAL" // Deletion is critical
+                "CRITICAL"
         );
     }
 }
