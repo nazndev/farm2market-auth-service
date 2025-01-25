@@ -68,6 +68,30 @@ VALUES
     (4, 7), -- ADMIN can ASSIGN_ROLE
     (4, 8); -- ADMIN can ACCESS_DASHBOARD
 
+
+INSERT INTO permission (id, name, created_by, created_at, updated_by, updated_at)
+VALUES
+    (30, 'UPDATE_PRODUCT', 'SYSTEM', NOW(), 'SYSTEM', NOW()),
+    (31, 'DELETE_PRODUCT', 'SYSTEM', NOW(), 'SYSTEM', NOW()),
+    (32, 'VIEW_PRODUCT', 'SYSTEM', NOW(), 'SYSTEM', NOW()),
+    (33, 'VIEW_PRODUCT_LIST', 'SYSTEM', NOW(), 'SYSTEM', NOW());
+
+INSERT INTO permission (id, name, created_by, created_at, updated_by, updated_at)
+VALUES
+    (34, 'ARCHIVE_PRODUCT', 'SYSTEM', NOW(), 'SYSTEM', NOW());
+
+
+-- Role Permissions for Aggregation Centers
+INSERT INTO role_permissions (role_id, permission_id)
+VALUES
+    (3, (SELECT id FROM permission WHERE name = 'ARCHIVE_PRODUCT')); -- Aggregation Center
+
+-- Role Permissions for Admins
+INSERT INTO role_permissions (role_id, permission_id)
+VALUES
+    (4, (SELECT id FROM permission WHERE name = 'DELETE_PRODUCT')); -- Admin
+
+
 # For Market Place Service Permission
 INSERT INTO role_permissions (role_id, permission_id)
 VALUES
@@ -102,6 +126,14 @@ VALUES
     (4, 3); -- Aggregation Center user
 
 
+
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 4, id FROM permission
+    ON DUPLICATE KEY UPDATE role_id = role_id;
+
+INSERT INTO user_roles (user_id, role_id)
+SELECT 1, id FROM role
+    ON DUPLICATE KEY UPDATE user_id = user_id;
 
 
 
