@@ -81,6 +81,20 @@ VALUES
     (34, 'ARCHIVE_PRODUCT', 'SYSTEM', NOW(), 'SYSTEM', NOW());
 
 
+INSERT INTO permission (id, name, created_by, created_at, updated_by, updated_at)
+VALUES
+    (35, 'CONFIRM_PRODUCT', 'SYSTEM', NOW(), 'SYSTEM', NOW()),
+    (36, 'DELIVER_PRODUCT', 'SYSTEM', NOW(), 'SYSTEM', NOW()),
+    (37, 'RELEASE_PAYMENT', 'SYSTEM', NOW(), 'SYSTEM', NOW());
+
+INSERT INTO role_permissions (role_id, permission_id)
+VALUES
+    (2, 35), -- Retailer can confirm product
+    (3, 36), -- Aggregation Center can deliver product
+    (2, 37); -- Retailer can release payment
+
+
+
 -- Role Permissions for Aggregation Centers
 INSERT INTO role_permissions (role_id, permission_id)
 VALUES
